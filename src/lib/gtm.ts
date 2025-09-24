@@ -2,7 +2,7 @@
 
 export interface GTMEvent {
   event: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ReviewGTMEvent extends GTMEvent {
@@ -26,7 +26,7 @@ export interface AdminGTMEvent extends GTMEvent {
 
 declare global {
   interface Window {
-    dataLayer: any[];
+    dataLayer: unknown[];
   }
 }
 

@@ -44,7 +44,7 @@ export const POST = requireRole('super_admin')(async (request: NextRequest, user
     const validatedData = createAdminUserSchema.parse(body);
 
     // Check password confirmation if provided
-    if (validatedData.password !== (body as any).confirmPassword) {
+    if (validatedData.password !== (body as { confirmPassword?: string }).confirmPassword) {
       return new Response(
         JSON.stringify({
           success: false,

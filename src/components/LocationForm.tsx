@@ -305,7 +305,7 @@ export function LocationForm({
           <p className="text-sm text-red-600">{errors.notification_email.message}</p>
         )}
         <p className="text-sm text-gray-600">
-          If left blank, negative review notifications will use the brand's default email address.
+          If left blank, negative review notifications will use the brand&apos;s default email address.
         </p>
       </div>
 

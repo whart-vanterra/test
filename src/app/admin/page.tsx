@@ -155,7 +155,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'users' && user.role !== 'super_admin' && (
             <div className="text-center py-12">
-              <p className="text-gray-500">You don't have permission to manage users.</p>
+              <p className="text-gray-500">You don&apos;t have permission to manage users.</p>
             </div>
           )}
         </div>

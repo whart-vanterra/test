@@ -29,7 +29,7 @@ export function generateToken(user: AuthUser): string {
 
 export function verifyToken(token: string): AuthUser | null {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
+    const payload = jwt.verify(token, JWT_SECRET) as { id: string; email: string; name: string; role: string };
     return {
       id: payload.id,
       email: payload.email,
@@ -223,7 +223,7 @@ export async function generateResetToken(email: string): Promise<string | null> 
 
 export async function verifyResetToken(token: string): Promise<string | null> {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
+    const payload = jwt.verify(token, JWT_SECRET) as { type: string; userId: string };
     
     if (payload.type !== 'password-reset') {
       return null;

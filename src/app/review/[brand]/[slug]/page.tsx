@@ -107,7 +107,7 @@ function PositiveFeedbackStep({ location, platforms, rating, onPlatformClick, on
           ))}
         </div>
         <p className="text-gray-600">
-          We'd love it if you could share your experience on one of these platforms:
+          We&apos;d love it if you could share your experience on one of these platforms:
         </p>
       </div>
 
@@ -221,7 +221,7 @@ function NegativeFeedbackStep({ location, rating, onSubmit }: {
       <div className="text-center">
         <div className="text-6xl mb-4">😔</div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          We're Sorry You Had a Poor Experience
+          We&apos;re Sorry You Had a Poor Experience
         </h2>
         <div className="flex justify-center space-x-1 mb-4">
           {Array.from({ length: 5 }, (_, i) => (
@@ -327,9 +327,9 @@ function ThankYouStep({ isPositive, rating }: { isPositive: boolean; rating: num
       <p className="text-gray-600">
         {isPositive ? (
           <>
-            We're so glad you had a great experience! 
+            We&apos;re so glad you had a great experience! 
             <br />
-            Don't forget to check out our referral program for special rewards.
+            Don&apos;t forget to check out our referral program for special rewards.
           </>
         ) : (
           <>
@@ -471,7 +471,7 @@ export default function ReviewPage() {
     setStep('thankyou');
   };
 
-  const submitReview = async (reviewData: any) => {
+  const submitReview = async (reviewData: Record<string, unknown>) => {
     try {
       setSubmitting(true);
       

@@ -49,7 +49,7 @@ export class RateLimitError extends AppError {
   }
 }
 
-export function handleError(error: any): NextResponse {
+export function handleError(error: unknown): NextResponse {
   console.error('Error:', error);
 
   // Handle known application errors
@@ -78,8 +78,8 @@ export function handleError(error: any): NextResponse {
   }
 
   // Handle validation errors (Zod)
-  if (error?.issues) {
-    const validationErrors = error.issues.map((issue: any) => ({
+  if (error && typeof error === 'object' && 'issues' in error && Array.isArray((error as { issues: unknown[] }).issues)) {
+    const validationErrors = (error as { issues: Array<{ path: string[]; message: string }> }).issues.map((issue) => ({
       field: issue.path.join('.'),
       message: issue.message,
     }));
@@ -134,10 +134,10 @@ export async function withErrorHandling<T>(
   }
 }
 
-export function logError(error: any, context?: any): void {
+export function logError(error: unknown, context?: unknown): void {
   const errorInfo = {
-    message: error.message,
-    stack: error.stack,
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
     timestamp: new Date().toISOString(),
     context,
   };

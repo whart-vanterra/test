@@ -147,7 +147,7 @@ export interface UpdateAdminUserData extends Partial<CreateAdminUserData> {
 }
 
 // API Response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -224,5 +224,5 @@ export interface NegativeFeedbackEmailData {
 // GTM Event types
 export interface GTMEvent {
   event: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
