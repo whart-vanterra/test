@@ -8,16 +8,17 @@ import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/e
 import { uploadFile } from '@/lib/file-upload';
 
 // PUT /api/admin/brands/[id] - Update brand
-export const PUT = requireAuth(async (request: NextRequest, user, { params }: { params: { id: string } }) => {
+export const PUT = requireAuth(async (request: NextRequest, user, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const rateLimitResponse = await rateLimitMiddleware(request, adminApiRateLimit);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
+    const { id } = await params;
     const formData = await request.formData();
     const brandData = {
-      id: params.id,
+      id,
       name: formData.get('name') as string,
       slug: formData.get('slug') as string,
       description: formData.get('description') as string || null,
@@ -34,7 +35,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
     const { data: existingBrand, error: fetchError } = await supabase
       .from('reviews_brands')
       .select('id, slug')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !existingBrand) {
@@ -47,7 +48,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
         .from('reviews_brands')
         .select('id')
         .eq('slug', validatedData.slug)
-        .neq('id', params.id)
+        .neq('id', id)
         .single();
 
       if (slugConflict) {
@@ -74,7 +75,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
         logo_url: logoUrl,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -106,7 +107,7 @@ export const DELETE = requireAuth(async (request: NextRequest, user, { params }:
         name,
         locations:reviews_locations(id)
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !brandWithLocations) {
@@ -124,7 +125,7 @@ export const DELETE = requireAuth(async (request: NextRequest, user, { params }:
     const { error } = await supabase
       .from('reviews_brands')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete brand: ${error.message}`);

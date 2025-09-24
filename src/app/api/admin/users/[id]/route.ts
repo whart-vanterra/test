@@ -8,18 +8,19 @@ import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/e
 import { updateAdminUserPassword } from '@/lib/admin-auth';
 
 // PUT /api/admin/users/[id] - Update admin user
-export const PUT = requireAuth(async (request: NextRequest, user, { params }: { params: { id: string } }) => {
+export const PUT = requireAuth(async (request: NextRequest, user, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const rateLimitResponse = await rateLimitMiddleware(request, adminApiRateLimit);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
+    const { id } = await params;
     const body = await request.json();
-    const validatedData = updateAdminUserSchema.parse({ ...body, id: params.id });
+    const validatedData = updateAdminUserSchema.parse({ ...body, id });
 
     // Check if user is trying to update their own role (not allowed)
-    if (params.id === user.id && validatedData.role && validatedData.role !== user.role) {
+    if (id === user.id && validatedData.role && validatedData.role !== user.role) {
       return createErrorResponse('You cannot change your own role', 400);
     }
 
@@ -39,7 +40,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
     const { data: existingUser, error: fetchError } = await supabase
       .from('reviews_admin_users')
       .select('id, email, role')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !existingUser) {
@@ -52,7 +53,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
         .from('reviews_admin_users')
         .select('id')
         .eq('email', validatedData.email.toLowerCase())
-        .neq('id', params.id)
+        .neq('id', id)
         .single();
 
       if (emailConflict) {
@@ -73,7 +74,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
     const { data: updatedUser, error } = await supabase
       .from('reviews_admin_users')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select('id, email, name, role, is_active, created_at, updated_at')
       .single();
 
@@ -83,7 +84,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
 
     // Update password separately if provided
     if (validatedData.password) {
-      await updateAdminUserPassword(params.id, validatedData.password);
+      await updateAdminUserPassword(id, validatedData.password);
     }
 
     return createSuccessResponse({ user: updatedUser });
@@ -101,7 +102,7 @@ export const DELETE = requireRole('super_admin')(async (request: NextRequest, us
     }
 
     // Prevent self-deletion
-    if (params.id === user.id) {
+    if (id === user.id) {
       return createErrorResponse('You cannot delete your own account', 400);
     }
 
@@ -111,7 +112,7 @@ export const DELETE = requireRole('super_admin')(async (request: NextRequest, us
     const { data: existingUser, error: fetchError } = await supabase
       .from('reviews_admin_users')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !existingUser) {
@@ -121,7 +122,7 @@ export const DELETE = requireRole('super_admin')(async (request: NextRequest, us
     const { error } = await supabase
       .from('reviews_admin_users')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete user: ${error.message}`);

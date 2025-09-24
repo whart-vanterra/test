@@ -8,16 +8,17 @@ import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/e
 import { uploadFile } from '@/lib/file-upload';
 
 // PUT /api/admin/review-platforms/[id] - Update platform
-export const PUT = requireAuth(async (request: NextRequest, user, { params }: { params: { id: string } }) => {
+export const PUT = requireAuth(async (request: NextRequest, user, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const rateLimitResponse = await rateLimitMiddleware(request, adminApiRateLimit);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
+    const { id } = await params;
     const formData = await request.formData();
     const platformData = {
-      id: params.id,
+      id,
       name: formData.get('name') as string,
       key: formData.get('key') as string,
       color: formData.get('color') as string,
@@ -34,7 +35,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
     const { data: existingPlatform, error: fetchError } = await supabase
       .from('reviews_platforms')
       .select('id, key')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !existingPlatform) {
@@ -47,7 +48,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
         .from('reviews_platforms')
         .select('id')
         .eq('key', validatedData.key)
-        .neq('id', params.id)
+        .neq('id', id)
         .single();
 
       if (keyConflict) {
@@ -74,7 +75,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
         logo_url: logoUrl,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -106,7 +107,7 @@ export const DELETE = requireAuth(async (request: NextRequest, user, { params }:
         name,
         locations:reviews_locations!platform_order
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !platformWithUsage) {
@@ -130,7 +131,7 @@ export const DELETE = requireAuth(async (request: NextRequest, user, { params }:
     const { error } = await supabase
       .from('reviews_platforms')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete platform: ${error.message}`);

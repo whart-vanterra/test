@@ -6,10 +6,11 @@ import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/e
 // GET /api/locations/by-brand/[brand]/[slug] - Get location by brand and slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { brand: string; slug: string } }
+  { params }: { params: Promise<{ brand: string; slug: string }> }
 ) {
   try {
-    const location = await getLocationByBrandAndSlug(params.brand, params.slug);
+    const { brand, slug } = await params;
+    const location = await getLocationByBrandAndSlug(brand, slug);
 
     if (!location) {
       return createErrorResponse('Location not found', 404);

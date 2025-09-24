@@ -6,20 +6,21 @@ import { rateLimitMiddleware } from '@/lib/rate-limiter';
 import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/error-handler';
 
 // DELETE /api/admin/reviews/[id] - Delete review
-export const DELETE = requireAuth(async (request: NextRequest, user, { params }: { params: { id: string } }) => {
+export const DELETE = requireAuth(async (request: NextRequest, user, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const rateLimitResponse = await rateLimitMiddleware(request, adminApiRateLimit);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
+    const { id } = await params;
     const supabase = createAdminClient();
 
     // Check if review exists
     const { data: review, error: fetchError } = await supabase
       .from('reviews_reviews')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !review) {
@@ -30,7 +31,7 @@ export const DELETE = requireAuth(async (request: NextRequest, user, { params }:
     const { error } = await supabase
       .from('reviews_reviews')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete review: ${error.message}`);

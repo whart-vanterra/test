@@ -7,15 +7,16 @@ import { rateLimitMiddleware } from '@/lib/rate-limiter';
 import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/error-handler';
 
 // PUT /api/admin/locations/[id] - Update location
-export const PUT = requireAuth(async (request: NextRequest, user, { params }: { params: { id: string } }) => {
+export const PUT = requireAuth(async (request: NextRequest, user, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const rateLimitResponse = await rateLimitMiddleware(request, adminApiRateLimit);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
+    const { id } = await params;
     const body = await request.json();
-    const validatedData = updateLocationSchema.parse({ ...body, id: params.id });
+    const validatedData = updateLocationSchema.parse({ ...body, id });
 
     const supabase = createAdminClient();
 
@@ -23,7 +24,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
     const { data: existingLocation, error: fetchError } = await supabase
       .from('reviews_locations')
       .select('id, brand_id, slug')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !existingLocation) {
@@ -50,7 +51,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
         .select('id')
         .eq('brand_id', validatedData.brand_id || existingLocation.brand_id)
         .eq('slug', validatedData.slug)
-        .neq('id', params.id)
+        .neq('id', id)
         .single();
 
       if (slugConflict) {
@@ -64,7 +65,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
         ...validatedData,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select(`
         *,
         brand:reviews_brands(*)
@@ -99,7 +100,7 @@ export const DELETE = requireAuth(async (request: NextRequest, user, { params }:
         name,
         reviews:reviews_reviews(id)
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !locationWithReviews) {
@@ -117,7 +118,7 @@ export const DELETE = requireAuth(async (request: NextRequest, user, { params }:
     const { error } = await supabase
       .from('reviews_locations')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete location: ${error.message}`);

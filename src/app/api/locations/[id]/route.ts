@@ -5,10 +5,11 @@ import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/e
 // GET /api/locations/[id] - Get location by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const location = await getLocationById(params.id);
+    const { id } = await params;
+    const location = await getLocationById(id);
 
     if (!location) {
       return createErrorResponse('Location not found', 404);
