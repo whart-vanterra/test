@@ -61,7 +61,7 @@ export const PUT = requireAuth(async (request: NextRequest, user, { params }: { 
     }
 
     // Prepare update data
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 

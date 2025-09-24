@@ -36,7 +36,7 @@ export function verifyToken(token: string): AuthUser | null {
       name: payload.name,
       role: payload.role,
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -247,7 +247,7 @@ export async function verifyResetToken(token: string): Promise<string | null> {
     }
 
     return user.id;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
